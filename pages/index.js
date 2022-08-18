@@ -1,20 +1,74 @@
 import { useEffect, useState } from "react";
 import Todo from "../components/Todo";
-import {
-  IconCheck,
-  IconTrash,
-  IconArrowUp,
-  IconArrowDown,
-} from "@tabler/icons";
 
 export default function Home() {
-  const deleteTodo = (idx) => {};
+  const deleteTodo = (idx) => {
+    todos.splice(idx, 1);
+    const newTodos = [...todos];
+    setTodos(newTodos);
+  };
 
-  const markTodo = (idx) => {};
+  const markTodo = (idx) => {
+    todos[idx].completed = !todos[idx].completed;
+    setTodos([...todos]);
+  };
 
-  const moveUp = (idx) => {};
+  const moveUp = (idx) => {
+    if (idx === 0) return;
+    const title = todos[idx].title;
+    const completed = todos[idx].completed;
 
-  const moveDown = (idx) => {};
+    todos[idx].title = todos[idx - 1].title;
+    todos[idx].completed = todos[idx - 1].completed;
+
+    todos[idx - 1].title = title;
+    todos[idx - 1].completed = completed;
+    setTodos([...todos]);
+  };
+
+  const moveDown = (idx) => {
+    if (idx === todos.length - 1) return;
+    const title = todos[idx].title;
+    const completed = todos[idx].completed;
+
+    todos[idx].title = todos[idx + 1].title;
+    todos[idx].completed = todos[idx + 1].completed;
+
+    todos[idx + 1].title = title;
+    todos[idx + 1].completed = completed;
+    setTodos([...todos]);
+  };
+
+  const [todoInput, setTodoInput] = useState("");
+  const [todos, setTodos] = useState([]);
+
+  //save todos
+  const [isFirstRender, setIsFirstRender] = useState(true);
+  useEffect(() => {
+    if (isFirstRender) {
+      setIsFirstRender(false);
+      return;
+    }
+    const todosStr = JSON.stringify(todos);
+    localStorage.setItem("todo-react", todosStr);
+  }, [todos]);
+
+  //load todos
+  useEffect(() => {
+    const todoStr = localStorage.getItem("todo-react");
+    setTodos(JSON.parse(todoStr));
+  }, []);
+
+  //input enter press
+  const onKeyPressHandler = (e) => {
+    if (e.key === "Enter" && todoInput !== "") {
+      const newTodos = [{ title: todoInput, completed: false }, ...todos];
+      setTodos(newTodos);
+      setTodoInput("");
+    } else if (e.key === "Enter" && todoInput === "") {
+      alert("Todo cannot be empty");
+    } else return;
+  };
 
   return (
     <div>
@@ -28,40 +82,42 @@ export default function Home() {
         <input
           className="form-control mb-1 fs-4"
           placeholder="insert todo here..."
+          onChange={(event) => {
+            setTodoInput(event.target.value);
+          }}
+          value={todoInput}
+          onKeyPress={onKeyPressHandler}
         />
-        {/* Todos */}
-        {/* Example 1 */}
-        <div className="border-bottom p-1 py-2 fs-2 d-flex gap-2">
-          <span className="me-auto">Todo</span>
-        </div>
-        {/* Example 2 */}
-        <div className="border-bottom p-1 py-2 fs-2 d-flex gap-2">
-          <span className="me-auto">Todo with buttons</span>
 
-          <button className="btn btn-success">
-            <IconCheck />
-          </button>
-          <button className="btn btn-secondary">
-            <IconArrowUp />
-          </button>
-          <button className="btn btn-secondary">
-            <IconArrowDown />
-          </button>
-          <button className="btn btn-danger">
-            <IconTrash />
-          </button>
+        {/* Todos */}
+        <div>
+          {todos.map((todos, i) => (
+            <Todo
+              title={todos.title}
+              key={i}
+              completed={todos.completed}
+              deleteFn={() => deleteTodo(i)}
+              markFn={() => markTodo(i)}
+              onMoveUp={() => moveUp(i)}
+              onMoveDown={() => moveDown(i)}
+            />
+          ))}
         </div>
 
         {/* summary section */}
         <p className="text-center fs-4">
-          <span className="text-primary">All (2) </span>
-          <span className="text-warning">Pending (2) </span>
-          <span className="text-success">Completed (0)</span>
+          <span className="text-primary">All ({todos.length}) </span>
+          <span className="text-warning">
+            Pending ({todos.filter((x) => x.completed === false).length}){" "}
+          </span>
+          <span className="text-success">
+            Completed ({todos.filter((x) => x.completed === true).length})
+          </span>
         </p>
 
         {/* Made by section */}
         <p className="text-center mt-3 text-muted fst-italic">
-          made by Chayanin Suatap 12345679
+          made by Charttrakarn Choosiri 620610784
         </p>
       </div>
     </div>
