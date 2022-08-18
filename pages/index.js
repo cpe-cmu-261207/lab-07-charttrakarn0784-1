@@ -56,7 +56,9 @@ export default function Home() {
   //load todos
   useEffect(() => {
     const todoStr = localStorage.getItem("todo-react");
-    setTodos(JSON.parse(todoStr));
+    if (todoStr === null) {
+      setTodos([]);
+    } else setTodos(JSON.parse(todoStr));
   }, []);
 
   //input enter press
